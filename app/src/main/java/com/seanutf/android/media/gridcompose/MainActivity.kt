@@ -1,40 +1,50 @@
 package com.seanutf.android.media.gridcompose
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.seanutf.android.media.gridcompose.ui.theme.MediaGridComposeTheme
 
-class MainActivity : ComponentActivity() {
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.Companion.isPhotoPickerAvailable
+import androidx.appcompat.app.AppCompatActivity
+import com.seanutf.android.media.gridcompose.databinding.ActivityLauncherBinding
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityLauncherBinding
+    private var pickMultipleMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MediaGridComposeTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-                    Greeting("Android")
+        binding = ActivityLauncherBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.tvOpenAndroid.setOnClickListener {
+            launch()
+        }
+
+        binding.tvOpenCustom.setOnClickListener {
+        }
+
+        register()
+    }
+
+    private fun register() {
+        if (isPhotoPickerAvailable()) {
+            pickMultipleMedia =
+                registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) { uris ->
+                    // Callback is invoked after the user selects media items or closes the
+                    // photo picker.
+                    if (uris.isNotEmpty()) {
+                        Log.d("PhotoPicker", "Number of items selected: ${uris.size}")
+                    } else {
+                        Log.d("PhotoPicker", "No media selected")
+                    }
                 }
-            }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MediaGridComposeTheme {
-        Greeting("Android")
+    private fun launch() {
+        pickMultipleMedia?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
     }
 }
